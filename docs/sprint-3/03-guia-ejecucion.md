@@ -2,9 +2,9 @@
 
 ## Requisitos
 
-- **Java 21+** (para el backend Spring Boot).
+- **Java 21+** (backend Spring Boot, y también el generador de reportes Serenity BDD).
 - **Node.js 18+** y **npm**.
-- Navegador Chromium de Playwright (se instala una sola vez, ver abajo).
+- Navegador Chromium de Playwright (se instala una sola vez).
 
 > No se necesita base de datos externa: el backend usa **H2 en memoria** y un procesador de
 > pagos **mock**.
@@ -12,11 +12,8 @@
 ## Instalación única
 
 ```bash
-# 1) Dependencias del frontend (incluye Playwright)
 cd frontend/payment-gateway-ui
 npm install
-
-# 2) Navegador para Playwright
 npx playwright install chromium
 ```
 
@@ -28,64 +25,56 @@ Desde la raíz del repositorio, en PowerShell:
 powershell -ExecutionPolicy Bypass -File scripts/run-e2e.ps1
 ```
 
-El script levanta el backend, espera a que esté listo, ejecuta la suite (que a su vez levanta
-el frontend) y detiene el backend al terminar. Para dejar el backend corriendo: añade
-`-KeepBackend`.
+Levanta el **backend** (:8085) y el **frontend Vite** (:5173), ejecuta la suite Cucumber, genera
+el reporte Serenity BDD y detiene los servidores. Para dejarlos corriendo: añade `-KeepServers`.
 
-## Opción B — Manual (dos terminales)
+## Opción B — Manual (tres terminales)
 
-**Terminal 1 — backend:**
 ```bash
-./mvnw spring-boot:run
-# Espera el log "Started EmbeddedPaymentsApplication" (http://localhost:8085)
-```
+# Terminal 1 — backend
+./mvnw spring-boot:run                  # http://localhost:8085
 
-**Terminal 2 — pruebas E2E:**
-```bash
+# Terminal 2 — frontend
+cd frontend/payment-gateway-ui && npm run dev    # http://localhost:5173
+
+# Terminal 3 — pruebas + reporte
 cd frontend/payment-gateway-ui
 npm run test:e2e
+npm run serenity:report
 ```
-
-Playwright levanta automáticamente el frontend (Vite, `http://localhost:5173`) gracias a la
-sección `webServer` de `playwright.config.ts`.
 
 ## Comandos útiles
 
 ```bash
-# Ejecutar toda la suite
+# Toda la suite
 npm run test:e2e
 
-# Ejecutar una sola HU
-npm run test:e2e -- hu-1.10
+# Una sola feature
+npm run test:e2e -- e2e/features/hu-1.12-cancelacion-reembolso.feature
 
-# Ver el último reporte HTML
-npx playwright show-report e2e/report
+# Incluir los escenarios @gap (quedan como no implementados)
+npm run test:e2e -- --tags "@gap or not @gap"
 
-# Ejecutar en modo visible (ver el navegador) o paso a paso
-npm run test:e2e -- --headed
-npm run test:e2e -- --ui
+# Generar el reporte Serenity BDD (tras ejecutar la suite)
+npm run serenity:report
 ```
 
 ## Dónde queda la evidencia
 
 | Artefacto | Ruta |
 |---|---|
-| Reporte HTML interactivo | `frontend/payment-gateway-ui/e2e/report/index.html` |
-| Resultado en JSON | `frontend/payment-gateway-ui/e2e/report/results.json` |
-| Capturas de los flujos UI | `frontend/payment-gateway-ui/e2e/evidencias/*.png` |
-| Trazas/videos (solo si algo falla) | `frontend/payment-gateway-ui/e2e/.artifacts/` |
+| **Reporte Serenity BDD** (Feature → Scenario → Step, con capturas) | `frontend/payment-gateway-ui/target/site/serenity/index.html` |
+| Resultados crudos (JSON Serenity) | `frontend/payment-gateway-ui/target/site/serenity/` |
 
 ## Resultado esperado
 
 ```
-27 casos · 22 passed · 5 skipped · 0 failed
+22 scenarios (22 passed)
 ```
 
-Los 5 *skipped* son los criterios sin implementación (HU 1.15 balance general e inconsistencia;
-HU 1.16 auditoría) y aparecen en el reporte con su motivo.
+(Los 5 escenarios `@gap` se excluyen por defecto; están en los `.feature` documentados.)
 
 ## Nota sobre Windows
 
-Si `node_modules` se instaló en otro sistema operativo, los binarios (`vite`, `playwright`)
-pueden no resolverse en Windows. Solución: volver a ejecutar `npm install` en
-`frontend/payment-gateway-ui` para regenerar los accesos `.cmd`.
+Si `node_modules` se instaló en otro sistema operativo, vuelve a ejecutar `npm install` en
+`frontend/payment-gateway-ui` para regenerar los binarios.

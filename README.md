@@ -152,20 +152,21 @@ npm run test
 npm run build
 ```
 
-### Pruebas E2E automatizadas (Sprint 3)
+### Pruebas E2E automatizadas (Sprint 3 — patrón Screenplay con Serenity/JS)
 
-Suite Playwright que automatiza los criterios de aceptación de las HU 1.9–1.16
-(creación de pagos, autorización, estado, cancelación/reembolso, transacciones,
-historial, ledger y auditoría).
+Suite E2E que automatiza los criterios de aceptación de las HU 1.9–1.16 (creación de pagos,
+autorización, estado, cancelación/reembolso, transacciones, historial, ledger y auditoría)
+con el **patrón Screenplay** (Actores, Abilities, Tasks, Questions) usando **Serenity/JS**.
 
 ```bash
-# Un solo comando (levanta backend + frontend, corre la suite y limpia)
+# Un solo comando (levanta backend + frontend, corre la suite, genera reporte y limpia)
 powershell -ExecutionPolicy Bypass -File scripts/run-e2e.ps1
 
 # o, con el backend ya corriendo:
-cd frontend/payment-gateway-ui && npm run test:e2e
+cd frontend/payment-gateway-ui && npm run test:e2e && npm run serenity:report
 ```
 
+Reporte Serenity BDD: `frontend/payment-gateway-ui/target/site/serenity/index.html`.
 Documentación, matriz de trazabilidad y guía de exposición: **[docs/sprint-3/](docs/sprint-3/README.md)**.
 
 ## 📦 Docker

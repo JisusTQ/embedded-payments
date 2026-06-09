@@ -1,4 +1,3 @@
-# Artefactos generados por Playwright (regenerables con `npm run test:e2e`)
+# Artefactos generados por Playwright/Serenity (regenerables con `npm run test:e2e`)
 .artifacts/
 report/
-# Las evidencias (capturas de los flujos UI) sí se versionan como soporte del Sprint 3.

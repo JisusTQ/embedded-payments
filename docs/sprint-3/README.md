@@ -1,4 +1,4 @@
-# Sprint 3 — Automatización de pruebas E2E (Calidad de Software)
+# Sprint 3 — Automatización E2E con Serenity BDD + Screenplay + Cucumber
 
 Este sprint cubre los dos entregables de la rúbrica:
 
@@ -6,60 +6,80 @@ Este sprint cubre los dos entregables de la rúbrica:
 2. **Ejecutar las pruebas automatizadas (E2E)** sobre el objeto de prueba.
 
 **Objeto de prueba:** plataforma *Embedded Payments* (backend Spring Boot + frontend Vue 3).
-**HU priorizadas del Sprint 3:** HU 1.9 a HU 1.16 (creación de pagos, autorización, estado,
-cancelación/reembolso, registro de transacciones, historial, ledger y auditoría).
+**HU priorizadas del Sprint 3:** HU 1.9 a HU 1.16.
+**Stack de automatización:** **Gherkin (.feature) → Cucumber → Screenplay (Serenity/JS) → Playwright**.
+
+## El patrón completo (lo que exige la rúbrica)
+
+| Capa | Qué es | Dónde está |
+|---|---|---|
+| **Features** (Gherkin) | Escenarios de negocio en lenguaje natural | `e2e/features/*.feature` |
+| **Step definitions** | Conectan cada paso Gherkin con el Screenplay | `e2e/features/step_definitions/*.steps.ts` |
+| **Actors** (actores) | `Comercio`, `Administrador`, `Cliente`, `Intruso` | `actorCalled('Comercio')` en los steps |
+| **Abilities** (habilidades) | BrowseTheWebWithPlaywright, CallAnApi, TakeNotes | `e2e/screenplay/cast/Actors.ts` |
+| **Tasks** (tareas) | `LogIn`, `CreateAPaymentOrder`, `AuthorizeThePayment`, `RequestARefund`… | `e2e/screenplay/tasks/` |
+| **Questions** (preguntas) | `PaymentIntentStatus`, `ResponseStatus`, `TransactionHistoryRows`… | `e2e/screenplay/questions/` |
+
+Así se lee un escenario (Gherkin) y su step (Screenplay):
+
+```gherkin
+Scenario: El estado cambia después de una acción
+  Given un pago fue autorizado
+  When la plataforma procesa el cobro
+  Then el estado cambia y el comercio puede verlo actualizado
+```
+```ts
+When('la plataforma procesa el cobro', () =>
+  actorCalled('Comercio').attemptsTo(AuthorizeThePayment.now()),
+)
+```
 
 ## Resultado de la ejecución
 
 | Métrica | Valor |
 |---|---|
-| Casos automatizados ejecutados | **27** (24 de las HU + 3 de acceso/login) |
+| Escenarios ejecutados | **22** (19 de las HU + 3 de acceso) |
 | ✅ Aprobados | **22** |
-| ⏭️ Omitidos (gap de implementación documentado) | **5** |
 | ❌ Fallidos | **0** |
-| Duración total | ~16 s |
+| Escenarios documentados como **@gap** (no ejecutables) | **5** |
 | Cobertura de escenarios automatizables | **19/19 (100%)** |
-| Cobertura sobre el total de escenarios HU | **19/24 (79%)** |
 
-> Los 5 casos omitidos corresponden a criterios sin implementación en el objeto de
-> prueba (ledger consolidado de administrador, detección de inconsistencias y consulta/
-> inmutabilidad de auditoría). Se documentan como **hallazgos de QA**, no como fallos.
+> Los 5 escenarios `@gap` (ledger consolidado de administrador, detección de inconsistencias y
+> auditoría) **están en los `.feature`** etiquetados `@gap` y se excluyen de la ejecución porque el
+> objeto de prueba no los implementa. Son **hallazgos de QA**, no fallos. Ver
+> [04-hallazgos-qa.md](04-hallazgos-qa.md).
 
-## Herramienta de automatización
+## Reporte y evidencias
 
-- **Playwright** (navegador Chromium real) para los flujos de interfaz (UI E2E).
-- **Playwright `request`** (cliente HTTP) para los escenarios de servicio que no tienen
-  interfaz (autorizar, cancelar, reembolsar, accesos cruzados, comercio inactivo).
+- **Reporte Serenity BDD** (Feature → Scenario → Step, por actor, con capturas):
+  `frontend/payment-gateway-ui/target/site/serenity/index.html`
+- Se genera con `npm run serenity:report` después de ejecutar la suite.
 
-Ambos enfoques ejercitan el objeto de prueba **de extremo a extremo**: el de UI desde el
-navegador contra el frontend+backend reales; el de API contra el backend real.
+## Estructura del código de pruebas
+
+```
+frontend/payment-gateway-ui/
+├── cucumber.cjs                       # configuración del runner Cucumber
+└── e2e/
+    ├── features/
+    │   ├── *.feature                  # Gherkin (HU 1.9–1.16 + acceso)
+    │   ├── step_definitions/*.steps.ts# pasos -> Screenplay
+    │   └── support/serenity.config.ts # navegador + Cast + reporteros
+    ├── screenplay/
+    │   ├── cast/Actors.ts             # ABILITIES
+    │   ├── tasks/                     # TASKS (Authentication, Payments, MerchantUi)
+    │   ├── questions/                 # QUESTIONS (Api.ts, Ui.ts)
+    │   ├── ui/Pages.ts                # Page Objects (Targets)
+    │   └── notes.ts
+    └── helpers/test-data.ts
+```
 
 ## Contenido de esta carpeta
 
 | Documento | Descripción |
 |---|---|
-| [01-estrategia-automatizacion.md](01-estrategia-automatizacion.md) | Estrategia, alcance, herramientas, arquitectura de la suite y convenciones. |
-| [02-matriz-trazabilidad.md](02-matriz-trazabilidad.md) | Mapeo HU → escenario (Gherkin) → caso automatizado → estado. |
-| [03-guia-ejecucion.md](03-guia-ejecucion.md) | Cómo ejecutar la suite y dónde ver el reporte/evidencias. |
-| [04-hallazgos-qa.md](04-hallazgos-qa.md) | Defectos corregidos y gaps de implementación detectados por la automatización. |
-| [05-guion-exposicion.md](05-guion-exposicion.md) | Guion sugerido para la sustentación del Sprint 3. |
-
-## Dónde está el código de las pruebas
-
-```
-frontend/payment-gateway-ui/
-├── playwright.config.ts        # configuración E2E
-└── e2e/
-    ├── helpers/                # utilidades (login UI, helpers de API, datos)
-    ├── auth.spec.ts            # acceso a la plataforma (precondición)
-    ├── hu-1.09-creacion-pagos.spec.ts
-    ├── hu-1.10-autorizacion-pagos.spec.ts
-    ├── hu-1.11-estado-pago.spec.ts
-    ├── hu-1.12-cancelacion-reembolso.spec.ts
-    ├── hu-1.13-registro-transacciones.spec.ts
-    ├── hu-1.14-historial-operaciones.spec.ts
-    ├── hu-1.15-ledger-financiero.spec.ts
-    ├── hu-1.16-auditoria.spec.ts
-    ├── evidencias/             # capturas PNG de los flujos UI
-    └── report/                 # reporte HTML + results.json (generado)
-```
+| [01-estrategia-automatizacion.md](01-estrategia-automatizacion.md) | Estrategia, stack y patrón Screenplay/BDD. |
+| [02-matriz-trazabilidad.md](02-matriz-trazabilidad.md) | Mapeo HU → escenario (Gherkin) → estado. |
+| [03-guia-ejecucion.md](03-guia-ejecucion.md) | Cómo ejecutar la suite y ver el reporte. |
+| [04-hallazgos-qa.md](04-hallazgos-qa.md) | Defectos corregidos y gaps detectados. |
+| [05-guion-exposicion.md](05-guion-exposicion.md) | Guion para la sustentación. |
