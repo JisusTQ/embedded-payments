@@ -2,15 +2,9 @@ import { test, expect } from '@playwright/test'
 import { SEEDED_MERCHANT } from './helpers/test-data'
 import { loginViaUI, loginAndExpectDashboard } from './helpers/ui'
 
-/**
- * HU - Autenticación de comercio.
- * Criterios de aceptación automatizados: login válido, login inválido,
- * y protección de rutas privadas.
- */
 test.describe('Autenticación de comercio', () => {
   test('CP-AUTH-01 | Login exitoso con credenciales válidas redirige al dashboard', async ({ page }) => {
     await loginAndExpectDashboard(page, SEEDED_MERCHANT.email, SEEDED_MERCHANT.password)
-    // El email del comercio aparece en la barra lateral -> sesión activa.
     await expect(page.getByText(SEEDED_MERCHANT.email).first()).toBeVisible()
   })
 

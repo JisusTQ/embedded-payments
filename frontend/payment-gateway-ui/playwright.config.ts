@@ -1,19 +1,10 @@
 import { defineConfig, devices } from '@playwright/test'
 
-/**
- * Configuración E2E para el objeto de prueba (Payment Gateway UI).
- *
- * Requisitos para ejecutar:
- *  1. Backend Spring Boot arriba en http://localhost:8085  (./mvnw spring-boot:run)
- *  2. `npm run test:e2e`  -> Playwright levanta automáticamente el frontend (Vite)
- *
- * El backend NO se levanta aquí a propósito (arranque pesado de Maven en Windows);
- * se documenta como prerrequisito y existe scripts/run-e2e.ps1 como atajo de un comando.
- */
+// E2E del Payment Gateway. Requiere el backend en http://localhost:8085;
+// el frontend (Vite) lo levanta Playwright vía webServer.
 export default defineConfig({
   testDir: './e2e',
   outputDir: './e2e/.artifacts',
-  // Las pruebas comparten estado del backend (H2) -> ejecución secuencial y estable.
   fullyParallel: false,
   workers: 1,
   forbidOnly: !!process.env.CI,
