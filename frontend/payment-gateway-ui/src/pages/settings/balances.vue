@@ -76,9 +76,11 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useMerchantStore } from '@/stores/merchant'
+import { useAuthStore } from '@/stores/auth'
 import { transactionService } from '@/services/transactions'
 
 const merchantStore = useMerchantStore()
+const authStore = useAuthStore()
 const merchant = computed(() => merchantStore.current)
 
 const isLoading = ref(false)
@@ -138,7 +140,20 @@ async function fetchAll() {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
+  // La página debe ser autosuficiente en navegación directa o al refrescar:
+  // si el comercio aún no está cargado en el store, lo cargamos a partir de la sesión.
+  if (!merchant.value) {
+    await authStore.initializeSession()
+    const id = authStore.user?.merchantId || authStore.user?.id
+    if (id) {
+      try {
+        await merchantStore.fetchById(id)
+      } catch {
+        /* el watch de merchant disparará fetchAll cuando esté disponible */
+      }
+    }
+  }
   fetchAll()
 })
 

@@ -13,8 +13,12 @@ public class MockPaymentProcessor implements PaymentProcessor {
 
     @Override
     public ProcessorResult process(UUID paymentIntentId, UUID customerId, BigDecimal amount, String currency) {
-        // Mock: simulate successful payment with ~90% success rate
-        boolean isSuccessful = System.nanoTime() % 10 != 0;
+        // Comportamiento DETERMINISTA para pruebas automatizadas (antes dependia de
+        // System.nanoTime(), lo que hacia el resultado aleatorio e intesteable):
+        //   - Montos cuyos centavos son exactamente .01 simulan un pago RECHAZADO.
+        //   - Cualquier otro monto es APROBADO.
+        boolean isSuccessful = amount == null
+                || amount.remainder(BigDecimal.ONE).compareTo(new BigDecimal("0.01")) != 0;
 
         if (isSuccessful) {
             String processorRef = "mock_" + UUID.randomUUID().toString().substring(0, 8);

@@ -29,10 +29,10 @@ public class RoutingNumberValidator implements ConstraintValidator<ValidRoutingN
             digits[i] = Character.getNumericValue(routing.charAt(i));
         }
 
-        // Multiplicadores para validación de routing
-        int sum = (digits[0] + digits[1] * 7 + digits[2] * 3) +
-                  (digits[3] + digits[4] * 7 + digits[5] * 3) +
-                  (digits[6] + digits[7] * 7 + digits[8] * 3);
+        // Checksum ABA estándar (EE.UU.): pesos 3-7-1 repetidos por posición.
+        int sum = 3 * (digits[0] + digits[3] + digits[6]) +
+                  7 * (digits[1] + digits[4] + digits[7]) +
+                  1 * (digits[2] + digits[5] + digits[8]);
 
         return sum % 10 == 0;
     }

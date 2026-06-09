@@ -66,5 +66,23 @@ public class DemoDataInitializer implements CommandLineRunner {
             userAccountRepository.save(userAccount);
             System.out.println("Demo user account created successfully with email: " + email);
         }
+
+        // 4. Ensure a demo ADMIN account exists (needed for admin-only flows:
+        //    activate/deactivate merchant - HU 1.4 / HU 1.5). Test enablement only.
+        String adminEmail = "admin@example.com";
+        AuthRole adminRole = authRoleRepository.findByName("ROLE_ADMIN")
+                .orElseGet(() -> authRoleRepository.save(new AuthRole("ROLE_ADMIN", "Administrator role")));
+        if (userAccountRepository.findByEmail(adminEmail).isEmpty()) {
+            UserAccount adminAccount = new UserAccount(
+                    UUID.randomUUID(),
+                    adminEmail,
+                    passwordEncoder.encode("password"),
+                    "ACTIVE",
+                    Instant.now(),
+                    Set.of(adminRole)
+            );
+            userAccountRepository.save(adminAccount);
+            System.out.println("Demo admin account created successfully with email: " + adminEmail);
+        }
     }
 }

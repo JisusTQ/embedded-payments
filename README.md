@@ -152,6 +152,22 @@ npm run test
 npm run build
 ```
 
+### Pruebas E2E automatizadas (Sprint 3)
+
+Suite Playwright que automatiza los criterios de aceptación de las HU 1.9–1.16
+(creación de pagos, autorización, estado, cancelación/reembolso, transacciones,
+historial, ledger y auditoría).
+
+```bash
+# Un solo comando (levanta backend + frontend, corre la suite y limpia)
+powershell -ExecutionPolicy Bypass -File scripts/run-e2e.ps1
+
+# o, con el backend ya corriendo:
+cd frontend/payment-gateway-ui && npm run test:e2e
+```
+
+Documentación, matriz de trazabilidad y guía de exposición: **[docs/sprint-3/](docs/sprint-3/README.md)**.
+
 ## 📦 Docker
 
 ### Build
