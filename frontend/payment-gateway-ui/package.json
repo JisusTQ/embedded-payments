@@ -13,9 +13,7 @@
     "type-check": "vue-tsc --noEmit",
     "test": "vitest",
     "test:ui": "vitest --ui",
-    "test:coverage": "vitest --coverage",
-    "test:e2e": "node --import tsx ./node_modules/@cucumber/cucumber/bin/cucumber.js",
-    "serenity:report": "serenity-bdd run --features e2e/features"
+    "test:coverage": "vitest --coverage"
   },
   "dependencies": {
     "axios": "^1.5.0",
@@ -33,17 +31,7 @@
     "zod": "^3.22.2"
   },
   "devDependencies": {
-    "@cucumber/cucumber": "^12.9.0",
     "@playwright/test": "^1.38.1",
-    "@serenity-js/assertions": "^3.43.3",
-    "@serenity-js/console-reporter": "^3.43.3",
-    "@serenity-js/core": "^3.43.3",
-    "@serenity-js/cucumber": "^3.43.3",
-    "@serenity-js/playwright": "^3.43.3",
-    "@serenity-js/playwright-test": "^3.43.3",
-    "@serenity-js/rest": "^3.43.3",
-    "@serenity-js/serenity-bdd": "^3.43.3",
-    "@serenity-js/web": "^3.43.3",
     "@tailwindcss/postcss": "^4.2.4",
     "@testing-library/vue": "^8.0.0",
     "@typescript-eslint/eslint-plugin": "^6.4.1",
@@ -58,7 +46,6 @@
     "prettier": "^3.0.3",
     "tailwindcss": "^4.2.4",
     "terser": "^5.46.2",
-    "tsx": "^4.22.4",
     "typescript": "^5.1.6",
     "vite": "^4.4.9",
     "vitest": "^0.33.0",
