@@ -14,7 +14,7 @@ public class StageSetup {
 
     @Before
     public void setTheStage() {
-        WebDriverManager.chromedriver().setup();
+        WebDriverManager.chromedriver().avoidResolutionCache().clearResolutionCache().setup();
         OnStage.setTheStage(new OnlineCast() {
             @Override
             public Actor actorNamed(String actorName, Ability... abilities) {

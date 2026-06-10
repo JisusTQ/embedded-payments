@@ -4,81 +4,64 @@ Duración sugerida: 8–10 min. Estructura: contexto → patrón Screenplay → 
 hallazgos → cierre.
 
 ## 1. Apertura (30 s)
-> "En el Sprint 3 automatizamos los escenarios de aceptación de las HU 1.9 a 1.16 con el
-> **patrón Screenplay** usando **Serenity/JS**. Las pruebas se leen como lenguaje de negocio:
-> **actores** con **habilidades** que ejecutan **tareas** y verifican el sistema con **preguntas**.
-> Se ejecutan de extremo a extremo sobre la plataforma real."
+> "En el Sprint 3 automatizamos los escenarios de aceptación de las HU 1.9 a 1.16 con
+> **Serenity BDD + Cucumber + el patrón Screenplay** en **Java/Gradle**. Las pruebas parten de
+> archivos `.feature` (Gherkin en inglés, con `Examples`) y los step definitions delegan en
+> **actores** que ejecutan **tasks** y verifican con **questions**, de extremo a extremo sobre
+> la plataforma real."
 
 ## 2. El patrón Screenplay (1–2 min)
-Abre [01-estrategia-automatizacion.md](01-estrategia-automatizacion.md) y muestra la tabla de
-los 4 elementos. Luego muestra un escenario real (p. ej. `e2e/hu-1.11-estado-pago.spec.ts`):
-```ts
-await actorCalled('Comercio').attemptsTo(
-  Authenticate.asSeededMerchant(),
-  CreateAPaymentIntent.of(95),
-  ConsultThePaymentStatus.now(),
-  Ensure.that(PaymentIntentStatus(), equals('CREATED')),
-  AuthorizeThePayment.now(),
-  ConsultThePaymentStatus.now(),
-  Ensure.that(PaymentIntentStatus(), equals('SUCCEEDED')),
-)
-```
-Señala:
-- **Actor**: `Comercio` (y en otros escenarios `Administrador`, `Cliente`, `Intruso`).
-- **Abilities**: definidas en `screenplay/cast/Actors.ts` (BrowseTheWeb, CallAnApi, TakeNotes).
-- **Tasks**: `Authenticate`, `CreateAPaymentIntent`, `AuthorizeThePayment`… en `screenplay/tasks/`.
-- **Questions**: `PaymentIntentStatus`, `ResponseStatus`… en `screenplay/questions/`.
+Muestra la estructura del proyecto `e2e-serenity/`:
+- **Features**: `src/test/resources/features/**` (auth, payments, transactions, ledger).
+- **Step definitions** y **runners** (JUnit 5): `src/test/java/.../stepdefinitions`, `.../runners`.
+- **Actors / Abilities**: `hooks/StageSetup` (OnStage + WebDriver + CallAnApi).
+- **Tasks**: `src/main/java/.../tasks` (`Login`, `CreatePaymentOrder`, `AuthorizePayment`, `RequestRefund`, …).
+- **Questions**: `src/main/java/.../questions` (`PaymentStatus`, `TransactionCount`, …).
+
+Abre un `.feature` (p. ej. `payment_creation.feature`) y enseña el `Scenario Outline` con
+`Examples`; luego abre un step definition para mostrar `actorCalled(...).attemptsTo(Task...)`.
 
 ## 3. Demo en vivo (3–4 min)
-Backend arriba (o usa `scripts/run-e2e.ps1`). Ejecuta una HU con interfaz:
+Con backend (`:8085`) y frontend (`:5173`) arriba, desde `e2e-serenity/`:
 ```bash
-cd frontend/payment-gateway-ui
-npm run test:e2e -- hu-1.10
+gradlew clean test
 ```
-Narra: el actor **Comercio** crea el cobro por API y el actor **Cliente** paga el checkout por la
-interfaz; con el monto trigger la plataforma **rechaza**.
-
-Cierra abriendo el **reporte Serenity BDD**:
-```bash
-npm run serenity:report
-# Abrir: target/site/serenity/index.html
+Narra: los actores **Merchant / Administrator / Customer / Intruder** ejecutan las HU por
+API y por navegador. Al terminar, abre el **reporte Serenity BDD**:
 ```
-Muestra el árbol por actor/tarea con capturas y el resumen **22 successful, 5 skipped**.
+target/site/serenity/index.html
+```
+Muéstralo agrupado por *Feature → Scenario → Step*, con capturas de los pasos de UI.
 
 ## 4. Resultados (1 min)
-- **22 aprobados / 27**, 0 fallidos.
-- **19 de 19** escenarios automatizables: 100%.
-- 5 omitidos = criterios **sin implementación** en el producto (no son fallos): quedan como
-  pruebas omitidas con su motivo, visibles en el reporte.
+- Escenarios ejecutables: **22 aprobados** (HU + acceso); **0 fallidos**.
+- 5 escenarios `@gap` (ledger consolidado, detección de inconsistencias, auditoría) quedan en
+  los `.feature` y **excluidos de la ejecución** porque el producto no los implementa.
 
 ## 5. Hallazgos de QA (1–2 min) — el punto fuerte
 Resume [04-hallazgos-qa.md](04-hallazgos-qa.md):
-- **Defecto real:** validador de routing bancario calculaba mal el checksum ABA. **Corregido.**
+- **Defecto real:** el validador de routing bancario calculaba mal el checksum ABA. **Corregido.**
 - **Testabilidad:** el procesador de pagos era aleatorio; lo hicimos **determinista**.
 - **Defecto de UI:** la vista de Balances se rompía al refrescar; **corregido.**
 - **5 vacíos de implementación** detectados (ledger consolidado, inconsistencias y auditoría).
 
 ## 6. Cierre (30 s)
-> "Dejamos una suite E2E con patrón Screenplay, reproducible de un comando, con reporte Serenity
-> BDD y trazada 1:1 con los criterios de aceptación. Quedan identificados los pendientes de
-> producto en ledger y auditoría."
+> "Dejamos una suite E2E con patrón Screenplay (Serenity BDD), ejecutable con Gradle, con
+> reporte Serenity y trazada 1:1 con los criterios de aceptación. Quedan identificados los
+> pendientes de producto en ledger y auditoría."
 
 ---
 
 ## Posibles preguntas
 
-**¿Dónde está cada parte del patrón?** Actores en las specs (`actorCalled`), abilities en
-`screenplay/cast/Actors.ts`, tasks en `screenplay/tasks/`, questions en `screenplay/questions/`,
-page objects en `screenplay/ui/Pages.ts`.
+**¿Dónde está cada parte del patrón?** Features en `src/test/resources/features`; runners y
+step definitions en `src/test/java`; tasks, questions, page objects y abilities (Cast) en
+`src/main/java`.
 
-**¿Por qué algunas pruebas son por API y no por la interfaz?** Varias operaciones (autorizar,
-cancelar, reembolsar, accesos cruzados) **no tienen interfaz**; el actor las ejerce con la ability
-`CallAnApi`. Sigue siendo E2E sobre el sistema real.
+**¿Por qué algunas pruebas son por API y otras por navegador?** Varias operaciones (autorizar,
+cancelar, reembolsar, accesos cruzados) **no tienen interfaz**; el actor las ejerce con la
+ability `CallAnApi`. Sigue siendo E2E sobre el sistema real.
 
-**¿Por qué hay 5 pruebas omitidas?** Son criterios sin soporte en el producto (ledger consolidado
-de administrador, detección de inconsistencias y consulta/inmutabilidad de auditoría); se dejan
-trazados como pendientes.
-
-**¿Serenity reemplaza a Playwright?** Serenity/JS implementa el patrón Screenplay **sobre** el
-motor de Playwright. El código de las pruebas es 100% Screenplay (no hay `test()`/`expect()` ni
-`page.locator` en las specs).
+**¿Por qué hay 5 escenarios omitidos?** Son criterios sin soporte en el producto (ledger
+consolidado de administrador, detección de inconsistencias y consulta/inmutabilidad de
+auditoría); se dejan trazados como pendientes.

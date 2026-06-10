@@ -32,17 +32,21 @@ ext {
 }
 
 dependencies {
+    implementation platform("io.cucumber:cucumber-bom:7.18.0")
+
     implementation "net.serenity-bdd:serenity-core:${serenityVersion}"
     implementation "net.serenity-bdd:serenity-screenplay:${serenityVersion}"
     implementation "net.serenity-bdd:serenity-screenplay-webdriver:${serenityVersion}"
     implementation "net.serenity-bdd:serenity-screenplay-rest:${serenityVersion}"
     implementation "net.serenity-bdd:serenity-ensure:${serenityVersion}"
     implementation "net.serenity-bdd:serenity-cucumber:${serenityVersion}"
-    implementation "io.github.bonigarcia:webdrivermanager:5.6.3"
+    implementation "io.github.bonigarcia:webdrivermanager:5.9.3"
     implementation "org.slf4j:slf4j-simple:2.0.9"
 
+    testImplementation "io.cucumber:cucumber-junit-platform-engine"
     testImplementation "org.junit.platform:junit-platform-suite:${junitPlatformVersion}"
     testImplementation "org.junit.jupiter:junit-jupiter:${junitJupiterVersion}"
+    testImplementation "junit:junit:4.13.2"
 }
 
 test {

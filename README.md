@@ -1,255 +1,59 @@
-# Embedded Payments Platform
+# Embedded Payments — Análisis E2E (Sprint 3, Calidad de Software)
 
-Plataforma de pagos embebidos construida con Spring Boot y Vue 3. Proporciona una API REST completa para procesamiento de pagos con dashboard merchant integrado.
+Este repositorio está enfocado en el **análisis y la automatización de pruebas End‑to‑End (E2E)**
+de la plataforma *Embedded Payments*, correspondiente al **Sprint 3** del curso de Calidad de
+Software (HU 1.9 a 1.16).
 
-## 🚀 Quick Start
+La suite E2E está construida con **Serenity BDD + Cucumber + patrón Screenplay (Java + Gradle)** y
+vive en [`e2e-serenity/`](e2e-serenity/README.md). El resto del repositorio es la **aplicación bajo
+prueba** (backend Spring Boot + frontend Vue 3), que se levanta localmente para que las pruebas la
+ejerciten de extremo a extremo (navegador + API).
 
-### Requisitos
-- Java 21+
-- Node.js 18+
-- Maven (mvnw incluido)
-- PostgreSQL (opcional, H2 en desarrollo)
+## Estructura del repositorio
 
-### Backend
-```bash
-./mvnw spring-boot:run
-# Servidor en http://localhost:8085
-# Swagger en http://localhost:8085/swagger-ui/index.html
-```
+| Carpeta | Propósito |
+|---|---|
+| **`e2e-serenity/`** | **Suite E2E (el foco): Serenity BDD + Cucumber + Screenplay.** |
+| `docs/sprint-3/` | Entregables del Sprint 3: matriz de trazabilidad, hallazgos de QA y guion. |
+| `src/`, `frontend/` | Aplicación bajo prueba (Spring Boot + Vue), que sirve de objeto de prueba. |
+| `db/`, `scripts/` | Esquemas/datos de apoyo y utilidades para levantar el entorno. |
 
-### Frontend
-```bash
-cd frontend/payment-gateway-ui
-npm install
-npm run dev
-# Aplicación en http://localhost:5173
-```
+## Qué automatiza
 
-## 📱 Demo en Nube
+Las HU 1.9–1.16 (creación de pagos, autorización, estado, cancelación/reembolso, registro de
+transacciones, historial, ledger y auditoría), con `Scenario Outline` + `Examples`, en inglés y
+con el patrón Screenplay (Actores, Abilities, Tasks, Questions). Detalle en
+[docs/sprint-3/](docs/sprint-3/README.md) y [e2e-serenity/README.md](e2e-serenity/README.md).
 
-El servicio está desplegado en Render:
-- **URL**: https://embedded-payments-1.onrender.com
-- **Swagger**: https://embedded-payments-1.onrender.com/swagger-ui/index.html
-- **API Docs**: https://embedded-payments-1.onrender.com/v3/api-docs
+## Cómo ejecutar el análisis E2E
 
-## ✨ Características
-
-- ✅ Autenticación JWT
-- ✅ Gestión de comercios (merchants)
-- ✅ Intenciones de pago
-- ✅ Procesamiento de transacciones
-- ✅ Reembolsos (refunds)
-- ✅ Dashboard merchant responsive
-- ✅ API REST completamente documentada
-- ✅ Notificaciones global
-- ✅ Error handling robusto
-- ✅ **Nuevo**: Embedded checkout flow (public payment links)
-- ✅ **Nuevo**: Mock payment processor para testing
-
-## 🏗️ Arquitectura
-
-### Backend
-```
-com.paymentplatform.embeddedpayments
-├── auth/              # Autenticación
-├── merchant/          # Gestión de comercios
-├── payment/           # Intenciones de pago
-├── transaction/       # Procesamiento de transacciones
-├── refund/            # Reembolsos
-├── shared/            # Shared modules (security, audit, logging)
-└── infrastructure/    # Config, persistence, webhooks
-```
-
-**Capas**:
-- `api`: Controllers REST
-- `application`: Use cases
-- `domain`: Entities y business logic
-- `infrastructure`: Implementaciones de repositorio
-
-### Frontend
-- **Framework**: Vue 3 (Composition API)
-- **Build**: Vite 4.5
-- **Styling**: Tailwind CSS v4
-- **State**: Pinia
-- **HTTP**: Axios
-
-## 🔐 API Endpoints
-
-### Autenticación
-- `POST /api/v1/auth/register` - Registrar usuario
-- `POST /api/v1/auth/login` - Login
-- `GET /api/v1/auth/me` - Obtener usuario actual
-
-### Merchants
-- `POST /api/v1/merchants` - Registrar comercio (retorna api_key)
-- `GET /api/v1/merchants/{id}` - Obtener comercio
-
-### Pagos
-- `POST /api/v1/payments/intents` - Crear payment intent
-- `POST /api/v1/transactions` - Crear transacción (requiere X-API-Key)
-- `GET /api/v1/transactions` - Listar transacciones (protegido)
-- `GET /api/v1/transactions/{id}` - Obtener transacción (protegido)
-
-### Embedded Checkout (NUEVO)
-- `GET /checkout/intents/{id}` - Obtener intent de pago (público)
-- `POST /checkout/submit` - Procesar pago (público)
-
-### Reembolsos
-- `POST /api/v1/refunds` - Crear reembolso
-- `GET /api/v1/refunds/{id}` - Obtener reembolso
-
-### Webhooks
-- `POST /api/v1/webhooks` - Crear webhook
-- `GET /api/v1/webhooks` - Listar webhooks
-
-## 🔑 Autenticación
-
-### JWT Authentication
-Para endpoints de usuario: usar Bearer token en Authorization header
-```http
-Authorization: Bearer <jwt_token>
-```
-
-### API Key Authentication
-Para merchant APIs: usar header X-API-Key (obtenido al registrar comercio)
-```http
-X-API-Key: epk_<key-id>_<secret>
-```
-
-## 🛒 Embedded Checkout Flow (NUEVO)
-
-Flujo completo de pago sin redirecciones externas:
-
-1. **Merchant**: Crea payment intent con monto específico
-2. **Customer**: Accede a link de pago (public)
-3. **Customer**: Ingresa email y nombre
-4. **Transaction**: Se procesa automáticamente
-5. **Dashboard**: Merchant ve la transacción
-
-### Endpoints
-- `GET /checkout/intents/{id}` - Obtener datos de pago (público)
-- `POST /checkout/submit` - Procesar pago (público)
-
-### Documentación Completa
-Ver: **docs/CHECKOUT_FLOW.md** y **docs/QUICK_START.md**
-
-**Testing Local**:
-```bash
-./scripts/test_checkout_flow.sh
-```
-
-## 🧪 Testing
+Requisitos: **JDK 17+**, **Gradle 8.5+**, **Node 18+** y Chrome.
 
 ```bash
-# Backend tests
-./mvnw test
+# 1) Levantar la aplicación bajo prueba (objeto de prueba)
+./mvnw spring-boot:run                                   # backend  -> http://localhost:8085
+cd frontend/payment-gateway-ui && npm install && npm run dev   # frontend -> http://localhost:5173
 
-# Frontend tests
-cd frontend/payment-gateway-ui
-npm run test
-
-# Build frontend
-npm run build
+# 2) Ejecutar la suite E2E (en otra terminal)
+cd e2e-serenity
+gradle clean test          # o ./gradlew clean test si ya existe el wrapper
 ```
 
-### Pruebas E2E automatizadas (Sprint 3 — patrón Screenplay con Serenity/JS)
+> Atajo: `scripts/run-e2e.ps1` levanta backend + frontend (el objeto de prueba) para que solo
+> tengas que correr Gradle en `e2e-serenity/`.
 
-Suite E2E que automatiza los criterios de aceptación de las HU 1.9–1.16 (creación de pagos,
-autorización, estado, cancelación/reembolso, transacciones, historial, ledger y auditoría)
-con el **patrón Screenplay** (Actores, Abilities, Tasks, Questions) usando **Serenity/JS**.
+Reporte Serenity BDD: `e2e-serenity/target/site/serenity/index.html`.
 
-```bash
-# Un solo comando (levanta backend + frontend, corre la suite, genera reporte y limpia)
-powershell -ExecutionPolicy Bypass -File scripts/run-e2e.ps1
+### Cuentas sembradas (para las pruebas)
 
-# o, con el backend ya corriendo:
-cd frontend/payment-gateway-ui && npm run test:e2e && npm run serenity:report
-```
+| Cuenta | Email | Contraseña | Rol |
+|---|---|---|---|
+| Comercio | `test@example.com` | `password` | `ROLE_MERCHANT` |
+| Administrador | `admin@example.com` | `password` | `ROLE_ADMIN` |
 
-Reporte Serenity BDD: `frontend/payment-gateway-ui/target/site/serenity/index.html`.
-Documentación, matriz de trazabilidad y guía de exposición: **[docs/sprint-3/](docs/sprint-3/README.md)**.
+## Aplicación bajo prueba (contexto)
 
-## 📦 Docker
-
-### Build
-```bash
-docker build -t embedded-payments .
-```
-
-### Run
-```bash
-docker run --rm -p 8085:8085 \
-  -e SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/embeddedpayments \
-  -e SPRING_DATASOURCE_USERNAME=postgres \
-  -e SPRING_DATASOURCE_PASSWORD=postgres \
-  -e JWT_SECRET=change-this-secret-key-change-this-secret-key \
-  embedded-payments
-```
-
-## 🌐 Deployment
-
-### Render
-El proyecto está configurado para Render con `render.yaml`:
-
-Variables de entorno requeridas:
-- `SPRING_DATASOURCE_URL` - PostgreSQL connection
-- `SPRING_DATASOURCE_USERNAME` - DB user
-- `SPRING_DATASOURCE_PASSWORD` - DB password
-- `JWT_SECRET` - JWT signing secret
-- `SPRING_JPA_HIBERNATE_DDL_AUTO=none` - No auto-migrate en producción
-
-## 📚 Documentación
-
-Para detalles adicionales:
-- **SPRINT_SUMMARY.md** - Resumen de incrementos del sprint
-- **GETTING_STARTED.md** - Guía de inicio rápido
-- **docs/** - Documentación técnica detallada
-- **frontend/README.md** - Documentación del frontend
-
-## 🔄 Git Workflow
-
-Main branches:
-- `main` - Código estable
-- `develop` - Integración
-
-Feature branches:
-- `feature/auth-module`
-- `feature/merchant-module`
-- `feature/payment-module`
-- `feature/transaction-module`
-- `feature/refund-module`
-
-## 📝 Convención de Commits
-
-- `feat:` nueva feature
-- `fix:` bugfix
-- `refactor:` mejora interna
-- `docs:` cambios en documentación
-- `chore:` tooling o config
-
-## 🎨 UI/UX
-
-El frontend cuenta con:
-- Diseño moderno con Tailwind CSS v4
-- Paleta de colores neutral (slate)
-- Componentes responsivos
-- Animaciones fluidas
-- Error handling visual
-- Notificaciones globales
-
-## 📊 Sprint Completado
-
-✅ 6 HUs implementadas
-✅ Backend REST API funcional
-✅ Frontend responsivo y moderno
-✅ Documentación técnica
-✅ Deployment en nube
-✅ Tests configurados
-
-**Estado**: 🟢 LISTO PARA REVIEW
-
----
-
-**Versión**: 1.0.0
-**Fecha**: 2026-05-04
-**Licencia**: MIT
+Plataforma de pagos embebidos: **Spring Boot** (Java 21, H2 en memoria para desarrollo,
+procesador de pagos *mock*) + **Vue 3 / Vite**. Expone autenticación JWT, gestión de comercios,
+intenciones de pago, transacciones, reembolsos y un checkout embebido. Se usa únicamente como
+objeto de prueba para el análisis E2E de este repositorio.
